@@ -10,12 +10,6 @@ cmake_policy(SET CMP0025 NEW)
 # ---[ Project and semantic versioning.
 project(Caffe2 CXX C)
 
-if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-  set(LINUX TRUE)
-else()
-  set(LINUX FALSE)
-endif()
-
 set(CMAKE_INSTALL_MESSAGE NEVER)
 
 set(CMAKE_CXX_STANDARD 11)
@@ -25,7 +19,6 @@ endif()
 if (DEFINED GLIBCXX_USE_CXX11_ABI)
   if (${GLIBCXX_USE_CXX11_ABI} EQUAL 1)
     set(CXX_STANDARD_REQUIRED ON)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_GLIBCXX_USE_CXX11_ABI=1")
   endif()
 endif()
 
@@ -83,7 +76,7 @@ option(ATEN_NO_TEST "Do not build ATen test binaries" OFF)
 option(BUILD_ATEN_ONLY "Build only a subset focused on ATen only" OFF)
 option(BUILD_BINARY "Build C++ binaries" OFF)
 option(BUILD_DOCS "Build Caffe2 documentation" OFF)
-option(BUILD_CUSTOM_PROTOBUF "Build and use Caffe2's own protobuf under third_party" ON)
+option(BUILD_CUSTOM_PROTOBUF "Build and use Caffe2's own protobuf under third_party" OFF)
 option(BUILD_PYTHON "Build Python binaries" ON)
 option(BUILD_CAFFE2_OPS "Build Caffe2 operators" ON)
 option(BUILD_SHARED_LIBS "Build libcaffe2.so" ON)
@@ -107,36 +100,27 @@ option(CAFFE2_STATIC_LINK_CUDA "Statically link CUDA libraries" OFF)
 cmake_dependent_option(
     USE_CUDNN "Use cuDNN" ON
     "USE_CUDA" OFF)
-option(USE_FBGEMM "Use FBGEMM (quantized 8-bit server operators)" ON)
+option(USE_FBGEMM "Use FBGEMM (quantized 8-bit server operators)" OFF)
 option(USE_FFMPEG "Use ffmpeg" OFF)
 option(USE_GFLAGS "Use GFLAGS" OFF)
 option(USE_GLOG "Use GLOG" OFF)
-option(USE_LEVELDB "Use LEVELDB" OFF)
+option(USE_LEVELDB "Use LEVELDB" ON)
 option(USE_LITE_PROTO "Use lite protobuf instead of full." OFF)
-option(USE_LMDB "Use LMDB" OFF)
+option(USE_LMDB "Use LMDB" ON)
 option(USE_METAL "Use Metal for iOS build" ON)
 option(USE_NATIVE_ARCH "Use -march=native" OFF)
-cmake_dependent_option(
-    USE_NCCL "Use NCCL" ON
-    "USE_CUDA;UNIX;NOT APPLE" OFF)
-cmake_dependent_option(
-    USE_STATIC_NCCL "Use static NCCL" OFF
-    "USE_NCCL" OFF)
-cmake_dependent_option(
-    USE_SYSTEM_NCCL "Use system-wide NCCL" OFF
-    "USE_NCCL" OFF)
+option(USE_NCCL "Use NCCL" ON)
+option(USE_SYSTEM_NCCL "Use system-wide NCCL" ON)
 option(USE_NNAPI "Use NNAPI" OFF)
 option(USE_NNPACK "Use NNPACK" ON)
-cmake_dependent_option(
-    USE_NUMA "Use NUMA. Only available on Linux." ON
-    "LINUX" OFF)
+option(USE_NUMA "Use NUMA (only available on Linux)" ON)
 cmake_dependent_option(
     USE_NVRTC "Use NVRTC. Only available if USE_CUDA is on." OFF
     "USE_CUDA" OFF)
 option(USE_NUMPY "Use NumPy" ON)
 option(USE_OBSERVERS "Use observers module." OFF)
 option(USE_OPENCL "Use OpenCL" OFF)
-option(USE_OPENCV "Use OpenCV" OFF)
+option(USE_OPENCV "Use OpenCV" ON)
 option(USE_OPENMP "Use OpenMP for parallel code" ON)
 option(USE_PROF "Use profiling" OFF)
 option(USE_QNNPACK "Use QNNPACK (quantized 8-bit operators)" ON)
@@ -174,9 +158,7 @@ option(BUILDING_WITH_TORCH_LIBS "Tell cmake if Caffe2 is being built alongside t
 # When generating debug symbols, CMake default to use the flag /Zi.
 # However, it is not compatible with sccache. So we rewrite it off.
 # But some users don't use sccache; this override is for them.
-cmake_dependent_option(
-  MSVC_Z7_OVERRIDE "Work around sccache bug by replacing /Zi and /ZI with /Z7 when using MSVC (if you are not using sccache, you can turn this OFF)" ON
-  "MSVC" OFF)
+option(MSVC_Z7_OVERRIDE "Work around sccache bug by replacing /Zi and /ZI with /Z7 when using MSVC (if you are not using sccache, you can turn this OFF)" ON)
 
 set(ONNX_NAMESPACE "onnx_torch" CACHE STRING "A namespace for ONNX; needed to build with other frameworks that share ONNX.")
 
@@ -184,8 +166,6 @@ set(ONNX_NAMESPACE "onnx_torch" CACHE STRING "A namespace for ONNX; needed to bu
 # 1. Replace /Zi and /ZI with /Z7
 # 2. Switch off incremental linking in debug builds
 if (MSVC)
-  string(APPEND CMAKE_C_FLAGS " /EHa")
-  string(APPEND CMAKE_CXX_FLAGS " /EHa")
   if(MSVC_Z7_OVERRIDE)
     foreach(flag_var
         CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
@@ -229,7 +209,6 @@ if (INTERN_BUILD_MOBILE AND NOT BUILD_CAFFE2_MOBILE)
   set(BUILD_CAFFE2_OPS OFF)
   set(USE_DISTRIBUTED OFF)
   set(FEATURE_TORCH_MOBILE ON)
-  set(NO_API ON)
 endif()
 
 if (BUILD_ATEN_ONLY)
