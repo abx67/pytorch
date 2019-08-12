@@ -30,13 +30,13 @@ public:
     USE_OPERATOR_CONTEXT_FUNCTIONS;
     YoloOp(const OperatorDef& operator_def, Workspace* ws)
         : Operator<Context>(operator_def, ws),
-          anchor_mask_(OperatorBase::GetRepeatedArgument<int>("anchor_mask")),
-          anchors_(OperatorBase::GetRepeatedArgument<int>("anchors")),
-          numclass_(OperatorBase::GetSingleArgument<int>("numclass",80)),
-          numanchors_(OperatorBase::GetSingleArgument<int>("numanchors",9)),
-          stride_(OperatorBase::GetSingleArgument<int>("stride",16)),
-          is_train(OperatorBase::GetSingleArgument<bool>("is_train",false)),
-          conf_thresh_(OperatorBase::GetSingleArgument<float>("conf_thresh",0.6)){
+          anchor_mask_(this->template GetSingleArgument<int>("anchor_mask")),
+          anchors_(this->template GetSingleArgument<int>("anchors")),
+          numclass_(this->template GetSingleArgument<int>("numclass",80)),
+          numanchors_(this->template GetSingleArgument<int>("numanchors",9)),
+          stride_(this->template GetSingleArgument<int>("stride",16)),
+          is_train(this->template GetSingleArgument<bool>("is_train",false)),
+          conf_thresh_(this->template GetSingleArgument<float>("conf_thresh",0.6)){
           anchor_step_ = anchors_.size() / numanchors_;
           for(int i = 0;i < anchor_mask_.size();i++){
               float x = float(anchors_[anchor_mask_[i]*anchor_step_])/this->stride_;
@@ -45,7 +45,7 @@ public:
               masked_anchor_.push_back(y);
           }
     }
-
+    
     bool RunOnDevice() override;
     void SetDeviceTensor(const std::vector<float>& data, Tensor* tensor) {
         tensor->Resize(data.size());
